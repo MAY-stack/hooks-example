@@ -3,7 +3,7 @@ import './exam.css';
 
 //중괄호를 써서 import 하는 것은
 //보내는 쪽에서 중괄호를 써서 export {} 이런식으로 보낸 것임
-import { useEffect, useState, useRef, useContext, useMemo } from 'react';
+import { useEffect, useState, useRef, useContext, useMemo, useCallback } from 'react';
 
 import { createContext } from 'react';
 //createContext 저장소를 만들어주는 함수
@@ -63,7 +63,7 @@ const App = () => {
       <h1> 2. useEffect Example</h1>
       <h2> exam3</h2>
       <Exam3 />
-      <h2> exam4</h2>
+      <h2> exam4 - cleanup Example</h2>
       <Exam4 />
 
       <h1> 3. Ref Example</h1>
@@ -78,8 +78,21 @@ const App = () => {
 
       <h1>useMemo Example</h1>
       <h2>Exam8</h2>
-      <Exam8/>
+      <Exam8 />
+      
+      <hr />
+      <h1>6.23</h1>
+      <h2>Exam 9</h2>
+      <Exam9 />
+      
+      <h2> Shallow Copy vs. Deep Copy Example</h2>
+      <CopyTest />
+      look up console...
 
+      <h2> Exam10 useCallBack Example</h2>
+      <Exam10 />
+      <h2>Exam 11 스타일의 객체화 예제</h2>
+      <Exam11/>
     </div>
   )
 }
@@ -287,78 +300,77 @@ const Exam6 = () => {
 }
 
 //useContext 예제
-// const Exam7 = () => {
+const Exam7 = () => {
 
-//   const [isDark, setIsDark] = useState(false);
-//   return(
-//     <div>
-//       <UserContext.Provider value={'marisol'}> {/*Provider로 저장소의 영향이 미치는 컴포넌트를 둘러 쌈*/}
-//         <ThemeContext.Provider value={{isDark, setIsDark}}>
-//           <Page/>
-//         </ThemeContext.Provider>
-//       </UserContext.Provider>
-//     </div>
-//   );
+  const [isDark, setIsDark] = useState(false);
+  return(
+    <div>
+      <UserContext.Provider value={'marisol'}> {/*Provider로 저장소의 영향이 미치는 컴포넌트를 둘러 쌈*/}
+        <ThemeContext.Provider value={{isDark, setIsDark}}>
+          <Page/>
+        </ThemeContext.Provider>
+      </UserContext.Provider>
+    </div>
+  )
 
-// }
+}
 
-// //저장소 생성
-// const ThemeContext = createContext(null);
-// const UserContext = createContext(null)
+//저장소 생성
+const ThemeContext = createContext(null); //저장소 생성
+const UserContext = createContext(null); //저장소 생성
 
-// const Page = ({isDark, setIsDark}) => {
+const Page = () => {
+  return (
+    <div>
+      <Header />
+      <Content />
+      <Footer />
+    </div>
+  )
+}
 
-//   return (
-//     <div>
-//       <Header />
-//       <Content />
-//       <Footer />
-//     </div>
-//   );
+const Header = () => {
+  const { isDark } = UserContext(ThemeContext);  //저장소에 보관 된 값을 가져옴
+  const user = UserContext(UserContext);  //저장소에 보관 된 값을 가져옴
+  return (
+    <div>
+      <header className='header'
+        style={{
+          backgroundColor: isDark? 'balck' : 'lightgray',
+          color: isDark? 'white' : 'black'
+        }}>
+        <h1>어서 오세요. {user}</h1>
 
-// }
+      </header>
+    </div>
+  )
+}
 
-// const Header = () => {
-//   const { isDark } = UserContext(ThemeContext);  //저장소에 보관 된 값을 가져옴
-//   const user = UserContext(UserContext);  //저장소에 보관 된 값을 가져옴
-//   return (
-//     <div>
-//       <header className='header'
-//         style={{
-//           backgroundColor: isDark? 'balck' : 'lightgray',
-//           color: isDark? 'white' : 'black'
-//         }}>
-//         <h1>어서 오세요. {user}</h1>
-
-//       </header>
-//     </div>
-//   );
-// }
-
-// const Content = () => {
-//   const { isDark } = useContext(ThemeContext);
-//   const user = useContext(UserContext);
-
-//   <div className='Content'
-//     style={{
-//       backgroundColor: isDark? 'balck' : 'lightgray',
-//       color: isDark ? 'white' : 'black'
-//     }}
-//  > </div>
-// }  
-// const Footer = () => {
-//   const { isDark, setIsDark } = useContext(ThemeContext);
-//   return (
-//     <div>
-//       <footer className='footer'
-//         style={{
-//           backtroundColor: isDark? 'black':'lightgary'
-//         }}>
-//        <button className='button' onClick={() => setIsDark(!isDark)}>Dark Mode</button>
-//       </footer>
-//     </div>
-//   );
-// }
+const Content = () => {
+  const { isDark } = useContext(ThemeContext);
+  const user = useContext(UserContext);
+  return (
+  <div className='Content'
+    style={{
+      backgroundColor: isDark? 'balck' : 'lightgray',
+      color: isDark ? 'white' : 'black'
+    }}
+    > </div>
+  )
+}  
+const Footer = () => {
+  const { isDark, setIsDark } = useContext(ThemeContext);
+  return (
+    <div>
+      <footer className='footer'
+        style={{
+          backtroundColor: isDark? 'black':'lightgary'
+        }}>
+       <button className='button' onClick={() => setIsDark(!isDark)}>Dark Mode</button>
+      </footer>
+    </div>
+  )
+}
 
 
 //useMemo 예제
@@ -368,7 +380,9 @@ const Exam8 = () => {
 
   
   //const hardSum = hardCalculator(hardNumber);
-  const hardSum = useMemo(() => { return hardCalculator(hardNumber) }, { hardNumber });
+  const hardSum = useMemo(() => {
+    return hardCalculator(hardNumber)
+  }, [ hardNumber ]);
   //hardNumber가 변경 될 때만 콜백함수가 실행되고,
   //변경이 일어나지 않으면 그 전에 가지고 있던 hardSum 값을 재 사용
   const easySum = easyCalculator(easyNumber);
@@ -401,6 +415,147 @@ const easyCalculator = (number) => {
   console.log('조금 덜 짜증나는 계산기 랜더링');
   return number + 10000;
 
+}
+
+
+const Exam9 = () => {
+  const [number, setNumber] = useState(0);
+  const [isKorea, setIsKorea] = useState(true);
+  // const location = isKorea ? '한국' : '외쿡';
+  const location = useMemo(() => {
+    return {
+      country: isKorea ? '한국' : '외쿡'
+    } //primitive type이 아닌 refrence type의 경우
+  }, [isKorea]);
+
+  // useEffect(() => console.log("useEffect"), [location]); //location이 바뀔때에만 값이 바뀌도록 함
+
+  useEffect(() => console.log("useEffect 호출"), [location]); //location이 바뀔때에만 값이 바뀌도록 함
+
+  return (
+    
+    <div>
+      <h2>하루에 몇끼 머거여?</h2>
+      <input type="number" value={number} onChange={(e) => setNumber(e.target.value)} />
+      <hr />
+      <h2> 어느나라에 있나여?</h2>
+      <p>나라 : {location.country}</p>
+      <button onClick={()=>setIsKorea(!isKorea)}>비행기 타자</button>
+    </div>
+
+  )
+}
+
+/*얕은 복사 vs 깊은 복사 예제*/
+/*
+  *얕은 복사(Shallow Copy) 서로 다른 주소를 가짐 → 불변성을 유지한다.
+    //복사한 객체가 변경되어도 원래 객체는 바뀌지 않음
+  *깊은 복사 (Deep Copy) : 동일한 주소를 공유 → 불변성을 유지하지 못함
+    //복사한 객체가 변경되면 원래 객체도 바뀜
+*/
+const CopyTest = () => {
+  //얕은 복사
+  const object = {
+    name: "Kim min su",
+    gender:"male"
+  }
+
+  const copy = { ...object } //얇은 복사(Shallow Copy) : 서로 다른 주소를 가짐 → 불변성을 유지한다.
+  //ES6의 같은 기능 ↓
+  //const copy = Object.assign({},복사할객체);
+  //ex) const copy = Object.assign({},object);
+  
+  console.log(copy);
+  console.log(copy.name);
+  console.log(copy.gender);
+  console.log(object === copy); //false
+
+  copy.gender = "female";
+  console.log('object', object); //복사한 원래 객체의 값은 안바뀜
+  console.log('copy', copy);
+
+  //깊은 복사
+  const object1 = {
+    name: "Lee young hee",
+    gender:"female"
+  }
+  
+  const copy1 = object1;  //깊은 복사 (Deep Copy) : 동일한 주소를 공유 → 불변성을 유지하지 못함
+
+  console.log(copy1);
+  console.log(copy1.name);
+  console.log(copy1.gender);
+  console.log(object1 === copy1);
+
+  copy1.gender = "male";  //깊은 복사는 복사한 원래 객체의 값도 바뀜
+  console.log('object1', object1); 
+  console.log('copy1', copy1);
+
+
+}
+
+/*CallBack 예제*/
+const Exam10 = () => {
+  const [number, setNumber] = useState(0);
+
+  const someFunction = useCallback(
+    () => {
+      console.log(`someFuntcion : number : ${number}`);
+      return;
+    }, [number]); //template 표기법
+
+  useEffect(() => { console.log(`someFuncation has changed.`); },
+    [someFunction]);
+    // 첫랜더링시 , somFunction이 변경될 시에만 작동해야 하지만 number만 바뀌어도 컴포넌트의 변화??호출 됨??
+
+  return (
+    <div>
+      <input type='number' value={number} onChange={(e) => setNumber(e.target.value)} />
+      <br />
+      <button onClick={someFunction}>Call someFunction</button>
+    </div>
+  )
+
+}
+
+/*스타일의 객체화 예제*/
+const Exam11 = () => {
+  const [size, setSize] = useState(100);
+  const [isDark, setIsDark] = useState(false);
+  
+   
+  const createBoxStyle = useCallback(() => {
+    return{  
+      backgroundColor: 'pink',
+      width: `${size}px`,
+      height: `${size}px`,
+    }
+  },[size])
+
+  //스타일 값들을 객체화 시킨 것 ↑
+
+  return (
+    <div style={{ background: isDark ? 'black' : 'white' }}>
+      <input type="number" value={size} onChange={(e) => setSize(e.target.value)} />        
+      <button onClick={() => setIsDark(!isDark)}>Change Theme</button>
+      <Box createBoxStyle={createBoxStyle} /> {/*createBoxStyle이라는 이름으로 createBoxStyle을 props로 전달*/}
+
+    </div>
+  )
+}
+
+const Box = ({createBoxStyle}) => {
+  const [style, setStyle] = useState({}); //객체를 받을 것 이기 때문에 {}로 초기화, 배열 받을 시에는 []로 초기화
+  
+  useEffect(() => {
+    console.log("extend box size");
+    setStyle(createBoxStyle());
+  }, [createBoxStyle])
+  
+  return (
+    <div style={style}></div>
+  )
+  
 }
 
 export default App;
